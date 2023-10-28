@@ -67,16 +67,6 @@ let readindResource = finale.resource({
   endpoints: ['/readings', '/readings/:id']
 })
 
-// var expressWs = require('express-ws')(app)
-// // Get the /ws websocket route
-// app.ws('/ws', async function (ws, req) {
-//   ws.on('message', async function (msg) {
-//     console.log(msg)
-//     ws.send(JSON.stringify({ 'message': 'hello' }))
-
-//     // Start listening for messages
-//   })
-// })
 // Resets the database and launches the express app on :8082
 database
   .sync({ force: true })
@@ -86,7 +76,8 @@ database
       console.log('listening to port localhost:8082')
     })
   })
-
+  
+// WEBSOCKET
 const WebSocket = require('ws')
 const wss = new WebSocket.Server({ port: 7071 })
 const maxClients = 3
@@ -204,16 +195,17 @@ app.post('/request_new_reading', async function (req, res) {
   res.json({jobId: job.jobId})
 })
 
+
+// JOB
 const Queue = require('bull')
 
-const redisHost = process.env.REDIS_HOST || '127.0.0.1' || '172.17.0.1'
+const redisHost = process.env.REDIS_HOST || '127.0.0.1'
 const redisPort = process.env.REDIS_PORT || 6379
 const queueName = 'reading_jobs'
 
 // A queue for the jobs scheduled based on a reading without any external requests
 const readingJobsQueue = new Queue(queueName, { redis: { port: redisPort, host: redisHost } })
 readingJobsQueue.process(async function (job, done) {
-  console.log('process')
   const jobData = job.data
   await new Promise(resolve => setTimeout(resolve, 3000))
 
@@ -224,14 +216,13 @@ readingJobsQueue.process(async function (job, done) {
 })
 
 readingJobsQueue.on('completed', function (job, result) {
-  console.log('completed')
   const jobData = job.data
   var ws = new WebSocket('ws://localhost:7071')
   ws.onopen = function (event) {
-    console.log('onopen')
     ws.send(JSON.stringify(jobData.wsData))
   }
   console.log(`job ${jobData.jobId} completed with result: ${JSON.stringify(result)}`)
 })
 console.log('reorder and refactor code, maybe separate ws and queue in two different files to import')
 console.log('make sure to have a good readme or them to understand, comment and document code ')
+console.log('docker per client, style, user AUTH, immudb (CHIEDERE LUNEDI) ')

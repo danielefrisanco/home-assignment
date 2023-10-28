@@ -27,17 +27,20 @@ services:
     #         MYSQL_USER: someadmin
     #         MYSQL_PASSWORD: 123456
     #         MYSQL_ROOT_HOST: '%'
-  # vue-ui:
-  #   # network_mode: "host"
-  #   build:
-  #     context: ./client
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 8080:8080
-  #   depends_on:
-  #      - nodejs-server
-  #   volumes:
-  #      - ./:/client
+  vue-ui:
+    # network_mode: "host"
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+       - nodejs-server
+    volumes:
+       - ./:/client
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: "npm run dev"
    
   redis:
     # network_mode: "host"

@@ -9,4 +9,3 @@ COPY . .
 
 EXPOSE 5137
 EXPOSE 8080
-CMD [ "npm", "run", "dev" ]
