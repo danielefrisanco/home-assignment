@@ -4,7 +4,10 @@
     <b-alert :show="loading" variant="info">{{ $t("loading") }}...</b-alert>
     <b-row>
       <b-col>
-        <b-btn variant="primary" @click.prevent="requestNewReading()">{{ $t("reading.request_new") }}</b-btn>
+        <b-btn :show="!connectedWs" variant="primary" @click.prevent="requestNewReading()">{{ $t("reading.request_new") }}</b-btn>
+      </b-col>
+      <b-col>
+        {{ last_message }}
       </b-col>
     </b-row>
     <b-row>
@@ -56,14 +59,56 @@ export default {
   data () {
     return {
       loading: false,
+      connectedWs: false,
       readings: [],
-      model: {}
+      model: {},
+      ws: null,
+      last_message: null,
+      room: null
     }
+  },
+  props: {
+    wsRoom: String
   },
   async created () {
     this.refreshReadings()
   },
+  mounted: function () {
+    console.log(this.wsRoom)
+    this.ws = new WebSocket('ws://localhost:7071')
+    var self = this
+    this.ws.onopen = function (event) {
+      // const obj = {'type': 'cippa', 'params': { 'sottocoppa': self.wsRoom }}
+      // self.ws.send(JSON.stringify(obj))
+      self.create()
+      self.connectedWs = true
+    }
+
+    this.ws.onmessage = function (event) {
+      let data = JSON.parse(event.data)
+      if (data.type === 'created') {
+        self.wsRoom = data.params.room
+      } else if (data.type === 'new_reading') {
+        self.refreshReadings()
+        self.last_message = data.status
+      } else {
+        console.log(`Type unknown: ${data}`)
+      }
+    }
+  },
   methods: {
+    create () {
+      // create or join
+      const obj = {'type': 'create', 'params': { 'room': this.wsRoom }}
+      this.ws.send(JSON.stringify(obj))
+    },
+    // join (code) {
+    //   const obj = {'type': 'join', 'params': { 'code': code }}
+    //   this.ws.send(JSON.stringify(obj))
+    // },
+    // leave () {
+    //   this.ws.send('{ "type": "leave" }')
+    // },
     async refreshReadings () {
       this.loading = true
       this.readings = await api.getReadings()
@@ -73,7 +118,7 @@ export default {
       this.model = Object.assign({}, reading)
     },
     async requestNewReading () {
-      await api.getRequestNewReading()
+      await api.getRequestNewReading(this.wsRoom)
     },
     async saveReading () {
       if (this.model.id) {

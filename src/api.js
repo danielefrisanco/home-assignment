@@ -36,7 +36,7 @@ export default {
   deleteReading (id) {
     return this.execute('delete', `/readings/${id}`)
   },
-  getRequestNewReading () {
-    return this.execute('get', '/request_new_reading')
+  getRequestNewReading (room) {
+    return this.execute('post', '/request_new_reading', {room: room})
   }
 }

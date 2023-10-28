@@ -11,10 +11,11 @@
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
     "lint": "eslint --ext .js,.vue src test/unit/specs",
-    "fixlint": "eslint --fix --ext .js,.jsx ."
+    "fixlint": "eslint --fix --ext .js,.jsx,.vue  ."
   },
   "dependencies": {
     "@codenotary/immudb-node": "^2.0.0-alpha.1",
+    "@estudioliver/vue-uuid-v4": "^1.0.0",
     "@okta/jwt-verifier": "^2.1.0",
     "@okta/okta-auth-js": "^4.8.0",
     "@okta/okta-vue": "^3.1.0",
@@ -25,6 +26,7 @@
     "finale-rest": "^1.1.1",
     "sequelize": "^6.6.2",
     "sqlite3": "^5.0.2",
+    "uuid": "^9.0.1",
     "vue": "^2.5.2",
     "vue-i18n": "^8.28.2",
     "vue-router": "^3.0.1",

@@ -16,7 +16,7 @@
       </b-collapse>
     </b-navbar>
     <!-- routes will be rendered here -->
-    <router-view />
+    <router-view :ws-room="wsRoom"/>
   </div>
 </template>
 
@@ -27,7 +27,8 @@ export default {
   name: 'app',
   data () {
     return {
-      activeUser: null
+      activeUser: null,
+      wsRoom: this.$uuidKey() // Maybe should be a value given from the server upon logging
     }
   },
   components: { LocaleSwitcher },
