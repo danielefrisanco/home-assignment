@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 const client = axios.create({
-  baseURL: 'http://localhost:3081/',
+  baseURL: 'http://localhost:8082/',
   json: true
 })
 
@@ -21,19 +21,22 @@ export default {
       return req.data
     })
   },
-  getPosts () {
-    return this.execute('get', '/posts')
+  getReadings () {
+    return this.execute('get', '/readings')
   },
-  getPost (id) {
-    return this.execute('get', `/posts/${id}`)
+  getReading (id) {
+    return this.execute('get', `/readings/${id}`)
   },
-  createPost (data) {
-    return this.execute('post', '/posts', data)
+  createReading (data) {
+    return this.execute('post', '/readings', data)
   },
-  updatePost (id, data) {
-    return this.execute('put', `/posts/${id}`, data)
+  updateReading (id, data) {
+    return this.execute('put', `/readings/${id}`, data)
   },
-  deletePost (id) {
-    return this.execute('delete', `/posts/${id}`)
+  deleteReading (id) {
+    return this.execute('delete', `/readings/${id}`)
+  },
+  getRequestNewReading () {
+    return this.execute('get', '/request_new_reading')
   }
 }

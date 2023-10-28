@@ -1,0 +1,15 @@
+{
+  "message": "hello i18n !!",
+  "loading": "Loading",
+  "save": "Save",
+  "edit": "Edit",
+  "delete": "Delete",
+  "new": "New",
+  "title": "Title",
+  "body": "Body",
+  "reading": {
+    "manager": "Readings Manager",
+    "reading": "reading",
+    "request_new": "Request a new reading"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "message": "hello i18n !!",
+  "loading": "Caricamento",
+  "save": "Salva",
+  "edit": "Modifica",
+  "delete": "Elimina",
+  "new": "Nuovo",
+  "title": "Titolo",
+  "body": "Descrizione",
+  "reading": {
+    "manager": "Gestisci Letture",
+    "reading": "lettura",
+    "request_new": "Richiedi nuova lettura"
+  }
+}

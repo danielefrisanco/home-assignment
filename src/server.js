@@ -39,9 +39,9 @@ let database = new Sequelize({
   storage: './test.sqlite'
 })
 
-// Define our Post model
+// Define our Reading model
 // id, createdAt, and updatedAt are added by sequelize automatically
-let Post = database.define('posts', {
+let Reading = database.define('readings', {
   title: Sequelize.STRING,
   body: Sequelize.TEXT
 })
@@ -52,18 +52,34 @@ finale.initialize({
   sequelize: database
 })
 
-// Create the dynamic REST resource for our Post model
-let userResource = finale.resource({
-  model: Post,
-  endpoints: ['/posts', '/posts/:id']
+// Create the dynamic REST resource for our Reading model
+let readindResource = finale.resource({
+  model: Reading,
+  endpoints: ['/readings', '/readings/:id']
 })
 
-// Resets the database and launches the express app on :8081
+app.get('/request_new_reading', function (req, res) {
+  console.log('aaaaaaaaaaaaaaaaa')
+  res.json({key: 'value'})
+})
+
+// Resets the database and launches the express app on :8082
 database
   .sync({ force: true })
   .then(() => {
-    console.log('3081 usare env')
-    app.listen(3081, () => {
-      console.log('listening to port localhost:3081')
+    console.log('8082 usare env')
+    app.listen(8082, () => {
+      console.log('listening to port localhost:8082')
     })
   })
+
+// const WebSocket = require('ws');
+// const wss = new WebSocket.Server({ port: 7071 });
+// const clients = new Map();
+// wss.on('connection', (ws) => {
+//   const id = uuidv4();
+//   const color = Math.floor(Math.random() * 360);
+//   const metadata = { id, color };
+
+//   clients.set(ws, metadata);
+// }

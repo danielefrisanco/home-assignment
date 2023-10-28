@@ -6,9 +6,12 @@
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
           <b-nav-item to="/">Home</b-nav-item>
-          <b-nav-item to="/posts-manager">Posts Manager</b-nav-item>
+          <b-nav-item to="/readings-manager">Readings Manager</b-nav-item>
           <b-nav-item href="#" @click.prevent="login" v-if="!activeUser">Login</b-nav-item>
           <b-nav-item href="#" @click.prevent="logout" v-else>Logout</b-nav-item>
+          <div class="nav__end">
+            <LocaleSwitcher />
+          </div>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -19,6 +22,7 @@
 
 <script>
 
+import LocaleSwitcher from '@/components/LocaleSwitcher'
 export default {
   name: 'app',
   data () {
@@ -26,6 +30,7 @@ export default {
       activeUser: null
     }
   },
+  components: { LocaleSwitcher },
   async created () {
     // await this.refreshActiveUser()
   },
@@ -50,3 +55,28 @@ export default {
   }
 }
 </script>
+<style scoped>
+/* .nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  padding: 1rem;
+  color: #fff;
+  background-color: #3d536a;
+}
+.nav__start, */
+.nav__end {
+  display: flex;
+  align-items: center;
+}
+.nav img {
+  margin-right: 1rem;
+}
+/* .nav a {
+  margin-right: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+} */
+</style>
