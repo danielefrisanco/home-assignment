@@ -10,7 +10,8 @@
     "build": "node build/build.js",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
-    "lint": "eslint --ext .js,.vue src test/unit/specs"
+    "lint": "eslint --ext .js,.vue src test/unit/specs",
+    "fixlint": "eslint --fix --ext .js,.jsx ."
   },
   "dependencies": {
     "@codenotary/immudb-node": "^2.0.0-alpha.1",

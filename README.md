@@ -24,4 +24,29 @@ npm run unit
 npm test
 ```
 
+``` bash
+# in another terminal
+node ./src/server
+```
+
+
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+
+
+## Websocket
+## Vue
+## I18n
+## Node
+## eslinter
+## Okta
+## SqlLite
+## docker
+## graph and report
+## Redis
+## restyle
+## Immmudb
+
+
+docker network create immudbnet
+docker run -d --net immudbnet -it --rm --name immudb -p 3322:3322 codenotary/immudb:latest
+docker run -it --rm --net immudbnet --name immuclient codenotary/immuclient:latest -a immudb

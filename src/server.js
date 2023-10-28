@@ -1,3 +1,10 @@
+/**
+ * Run with:
+ *
+ * ```sh
+ * npx ts-node --esm .\immudb-node-showcase\src\sql-showcase.ts
+ * ```
+ */
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
@@ -11,6 +18,7 @@ const finale = require('finale-rest')
 // })
 
 let app = express()
+
 app.use(cors())
 app.use(bodyParser.json())
 
@@ -58,11 +66,16 @@ let readindResource = finale.resource({
   endpoints: ['/readings', '/readings/:id']
 })
 
-app.get('/request_new_reading', function (req, res) {
-  console.log('aaaaaaaaaaaaaaaaa')
-  res.json({key: 'value'})
-})
+// var expressWs = require('express-ws')(app)
+// // Get the /ws websocket route
+// app.ws('/ws', async function (ws, req) {
+//   ws.on('message', async function (msg) {
+//     console.log(msg)
+//     ws.send(JSON.stringify({ 'message': 'hello' }))
 
+//     // Start listening for messages
+//   })
+// })
 // Resets the database and launches the express app on :8082
 database
   .sync({ force: true })
@@ -73,13 +86,19 @@ database
     })
   })
 
-// const WebSocket = require('ws');
-// const wss = new WebSocket.Server({ port: 7071 });
-// const clients = new Map();
-// wss.on('connection', (ws) => {
-//   const id = uuidv4();
-//   const color = Math.floor(Math.random() * 360);
-//   const metadata = { id, color };
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 7071 });
+const clients = new Map();
+wss.on('connection', (ws) => {
+  const id = uuidv4();
+  const color = Math.floor(Math.random() * 360);
+  const metadata = { id, color };
 
-//   clients.set(ws, metadata);
-// }
+  clients.set(ws, metadata);
+}
+
+// const immudbClient = require('immudb-node')
+app.get('/request_new_reading', function (req, res) {
+  console.log('aaaaaaaaaaaaaaaaa')
+  res.json({key: 'value'})
+})
