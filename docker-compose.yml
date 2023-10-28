@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  nodejs-server:
+    # network_mode: "host"
+    image: node:18.17.0-alpine
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - 8082:8082
+      - 7071:7071
+    volumes:
+      - .:/server
+    command: "node ./server"
+    depends_on:
+       - redis
+    #   - postgres
+    environment:
+      - "REDIS_HOST=host.docker.internal"
+      - "REDIS_PORT=6379"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    #   DATABASE_URL: postgres://todoapp@postgres/todos
+    #         MYSQL_ROOT_PASSWORD: 123456
+    #         MYSQL_DATABASE: dev
+    #         MYSQL_USER: someadmin
+    #         MYSQL_PASSWORD: 123456
+    #         MYSQL_ROOT_HOST: '%'
+  # vue-ui:
+  #   # network_mode: "host"
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #      - nodejs-server
+  #   volumes:
+  #      - ./:/client
+   
+  redis:
+    # network_mode: "host"
+    image: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
