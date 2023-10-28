@@ -120,7 +120,7 @@ wss.on('connection', function connection (ws) {
   })
   function newReading (room, params) {
     console.log('new_reading')
-    
+
     rooms[room].forEach(cl => cl.send(JSON.stringify(params)))
   }
   function create (params) {
@@ -204,17 +204,46 @@ wss.on('connection', function connection (ws) {
 })
 
 // const immudbClient = require('immudb-node')
-app.post('/request_new_reading', function (req, res) {
+app.post('/request_new_reading', async function (req, res) {
   console.log('aaaaaaaaaaaaaaaaa')
   console.log(req.body.room)
-  // console.log(rooms)
-  // TODO far partire un job che poi 
+  let type = 'new_reading'
+  const job = {jobType: 'reading', jobId: uuidv4(), wsData: {'type': type, 'room': req.body.room, 'params': { type: type, status: 'ok' }}}
+
+  await readingJobsQueue.add(job)
+  console.log(`scheduled job: ${job.jobId}`)
+
+  res.json({jobId: job.jobId})
+})
+
+const Queue = require('bull')
+
+const redisHost = process.env.REDIS_HOST || '127.0.0.1'
+const redisPort = process.env.REDIS_PORT || 6379
+const queueName = 'reading_jobs'
+
+// A queue for the jobs scheduled based on a reading without any external requests
+const readingJobsQueue = new Queue(queueName, { redis: { port: redisPort, host: redisHost } })
+
+readingJobsQueue.process(async function (job, done) {
+  console.log('process')
+  const jobData = job.data
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
+  // here read and write into immudb
+
+  console.log(`processing job ${jobData.jobId}`)
+  done(null, job.data)
+})
+
+readingJobsQueue.on('completed', function (job, result) {
+  console.log('completed')
+  const jobData = job.data
   var ws = new WebSocket('ws://localhost:7071')
   ws.onopen = function (event) {
-    let type = 'new_reading'
-    const obj = {'type': type, 'room': req.body.room, 'params': { type: type, status: 'ok' }}
-    ws.send(JSON.stringify(obj))
+    console.log('onopen')
+    ws.send(JSON.stringify(jobData.wsData))
   }
-  console.log('dopo')
-  res.json({key: 'value'})
+  console.log(`job ${jobData.jobId} completed with result: ${JSON.stringify(result)}`)
 })
+console.log('reorder and refactor code, maybe separate ws and queue in two different files to import')
