@@ -10,6 +10,7 @@
   "reading": {
     "manager": "Gestisci Letture",
     "reading": "lettura",
-    "request_new": "Richiedi nuova lettura"
+    "request_new": "Richiedi nuova lettura",
+    "completed": "Lettura completata"
   }
 }

@@ -89,7 +89,7 @@ database
 
 const WebSocket = require('ws')
 const wss = new WebSocket.Server({ port: 7071 })
-const maxClients = 2
+const maxClients = 3
 let rooms = {}
 wss.on('connection', function connection (ws) {
   ws.on('message', function message (data) {
@@ -98,17 +98,14 @@ wss.on('connection', function connection (ws) {
     const params = obj.params
 
     switch (type) {
-      case 'create':
-        create(params)
+      case 'create_or_join':
+        create_or_join(params)
         break
       case 'join':
-        join(params)
+        join(params) // not used
         break
       case 'leave':
-        leave(params)
-        break
-      case 'cippa':
-        cippa(params)
+        leave(params) // not used
         break
       case 'new_reading':
         newReading(obj.room, params)
@@ -119,27 +116,22 @@ wss.on('connection', function connection (ws) {
     }
   })
   function newReading (room, params) {
-    console.log('new_reading')
+    // with the room shared it is possible to change page and still receive the  updates
 
     rooms[room].forEach(cl => cl.send(JSON.stringify(params)))
   }
-  function create (params) {
-    console.log('create')
-    console.log(params.room)
-    const room = params.room // uuidv4()
+  function create_or_join (params) {
+    const room = params.room
     if (Object.keys(rooms).includes(room)) {
       console.warn(`Room ${room} already exists!`)
-      // join if exists
+      // join if already exists
       rooms[room].push(ws)
       ws['room'] = room
+      generalInformation(ws, 'joined')
       return
     }
     rooms[room] = [ws]
     ws['room'] = room
-    console.log('rooms')
-    // console.log(rooms)
-    console.log("ws['room']")
-    console.log(ws['room'])
 
     generalInformation(ws, 'created')
   }
@@ -170,10 +162,6 @@ wss.on('connection', function connection (ws) {
     ws['room'] = undefined
 
     if (rooms[room].length === 0) { close(room) }
-  }
-  function cippa (params) {
-    console.log(params)
-    ws.send(JSON.stringify({params: params, lippa: true}))
   }
   function close (room) {
     console.log('close')
@@ -208,7 +196,7 @@ app.post('/request_new_reading', async function (req, res) {
   console.log('aaaaaaaaaaaaaaaaa')
   console.log(req.body.room)
   let type = 'new_reading'
-  const job = {jobType: 'reading', jobId: uuidv4(), wsData: {'type': type, 'room': req.body.room, 'params': { type: type, status: 'ok' }}}
+  const job = {jobType: 'reading', jobId: uuidv4(), wsData: {'type': type, 'room': req.body.room, 'params': { type: type, status: 'ok', message: 'reading.completed' }}}
 
   await readingJobsQueue.add(job)
   console.log(`scheduled job: ${job.jobId}`)
@@ -247,3 +235,4 @@ readingJobsQueue.on('completed', function (job, result) {
   console.log(`job ${jobData.jobId} completed with result: ${JSON.stringify(result)}`)
 })
 console.log('reorder and refactor code, maybe separate ws and queue in two different files to import')
+console.log('make sure to have a good readme or them to understand, comment and document code ')

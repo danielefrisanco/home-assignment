@@ -10,6 +10,8 @@
   "reading": {
     "manager": "Readings Manager",
     "reading": "reading",
-    "request_new": "Request a new reading"
+    "request_new": "Request a new reading",
+    "completed": "Reading completed"
   }
+  
 }

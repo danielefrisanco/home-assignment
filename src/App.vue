@@ -15,6 +15,7 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
+    <Notifications :ws-room="wsRoom"/>
     <!-- routes will be rendered here -->
     <router-view :ws-room="wsRoom"/>
   </div>
@@ -23,6 +24,7 @@
 <script>
 
 import LocaleSwitcher from '@/components/LocaleSwitcher'
+import Notifications from '@/components/Notifications'
 export default {
   name: 'app',
   data () {
@@ -31,7 +33,7 @@ export default {
       wsRoom: this.$uuidKey() // Maybe should be a value given from the server upon logging
     }
   },
-  components: { LocaleSwitcher },
+  components: { LocaleSwitcher, Notifications },
   async created () {
     // await this.refreshActiveUser()
   },

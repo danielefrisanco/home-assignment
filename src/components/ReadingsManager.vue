@@ -6,9 +6,6 @@
       <b-col>
         <b-btn :show="!connectedWs" variant="primary" @click.prevent="requestNewReading()">{{ $t("reading.request_new") }}</b-btn>
       </b-col>
-      <b-col>
-        {{ last_message }}
-      </b-col>
     </b-row>
     <b-row>
       <b-col>
@@ -63,7 +60,6 @@ export default {
       readings: [],
       model: {},
       ws: null,
-      last_message: null,
       room: null
     }
   },
@@ -78,28 +74,21 @@ export default {
     this.ws = new WebSocket('ws://localhost:7071')
     var self = this
     this.ws.onopen = function (event) {
-      // const obj = {'type': 'cippa', 'params': { 'sottocoppa': self.wsRoom }}
-      // self.ws.send(JSON.stringify(obj))
-      self.create()
+      self.createOrJoin()
       self.connectedWs = true
     }
 
     this.ws.onmessage = function (event) {
       let data = JSON.parse(event.data)
-      if (data.type === 'created') {
-        self.wsRoom = data.params.room
-      } else if (data.type === 'new_reading') {
+      if (data.type === 'new_reading') {
         self.refreshReadings()
-        self.last_message = data.status
-      } else {
-        console.log(`Type unknown: ${data}`)
       }
     }
   },
   methods: {
-    create () {
+    createOrJoin () {
       // create or join
-      const obj = {'type': 'create', 'params': { 'room': this.wsRoom }}
+      const obj = {'type': 'create_or_join', 'params': { 'room': this.wsRoom }}
       this.ws.send(JSON.stringify(obj))
     },
     // join (code) {
