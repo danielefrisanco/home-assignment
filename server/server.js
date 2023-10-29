@@ -5,11 +5,14 @@
  * npx ts-node --esm .\immudb-node-showcase\src\sql-showcase.ts
  * ```
  */
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const Sequelize = require('sequelize')
 const finale = require('finale-rest')
+const immudbVaultApi = require('./immudb-vault')
+
 const { v4: uuidv4 } = require('uuid')
 // const OktaJwtVerifier = require('@okta/jwt-verifier')
 
@@ -51,8 +54,12 @@ let database = new Sequelize({
 // Define our Reading model
 // id, createdAt, and updatedAt are added by sequelize automatically
 let Reading = database.define('readings', {
-  title: Sequelize.STRING,
-  body: Sequelize.TEXT
+  documentId: Sequelize.STRING,
+  transactionId: Sequelize.STRING,
+  value: Sequelize.INTEGER,
+  reading_time: Sequelize.TIMESTAMP,
+  requested_by_user_id: Sequelize.STRING,
+  read_by_user_id: Sequelize.STRING
 })
 
 // Initialize finale
@@ -108,8 +115,9 @@ wss.on('connection', function connection (ws) {
   })
   function newReading (room, params) {
     // with the room shared it is possible to change page and still receive the  updates
-
-    rooms[room].forEach(cl => cl.send(JSON.stringify(params)))
+    if(rooms[room]) {
+      rooms[room].forEach(cl => cl.send(JSON.stringify(params)))
+    }
   }
   function create_or_join (params) {
     const room = params.room
@@ -127,7 +135,7 @@ wss.on('connection', function connection (ws) {
     generalInformation(ws, 'created')
   }
   function join (params) {
-    console.log('join')
+    console.log('remove')
     // console.log(params)
     const room = params.code
     if (!Object.keys(rooms).includes(room)) {
@@ -186,7 +194,8 @@ wss.on('connection', function connection (ws) {
 app.post('/request_new_reading', async function (req, res) {
   console.log('request_new_reading')
   let type = 'new_reading'
-  const job = {jobType: 'reading', jobId: uuidv4(), wsData: {'type': type, 'room': req.body.room, 'params': { type: type, status: 'ok', message: 'reading.completed' }}}
+  let userId = uuidv4() // req.user.uid
+  const job = {jobType: 'reading', jobId: uuidv4(), userId: userId, wsData: {'type': type, 'room': req.body.room, 'params': { type: type }}}
   console.log(job)
 
   await readingJobsQueue.add(job)
@@ -194,7 +203,6 @@ app.post('/request_new_reading', async function (req, res) {
 
   res.json({jobId: job.jobId})
 })
-
 
 // JOB
 const Queue = require('bull')
@@ -207,12 +215,15 @@ const queueName = 'reading_jobs'
 const readingJobsQueue = new Queue(queueName, { redis: { port: redisPort, host: redisHost } })
 readingJobsQueue.process(async function (job, done) {
   const jobData = job.data
-  await new Promise(resolve => setTimeout(resolve, 3000))
-
-  // here read and write into immudb
-
+  let fakeData = await fakeNewReading(jobData.userId)
+  jobData.wsData.params = {
+    ...jobData.wsData.params,
+    ...fakeData
+  }
+  console.log('jobData')
+  console.log(jobData)
   console.log(`processing job ${jobData.jobId}`)
-  done(null, job.data)
+  done(null, jobData)
 })
 
 readingJobsQueue.on('completed', function (job, result) {
@@ -223,6 +234,27 @@ readingJobsQueue.on('completed', function (job, result) {
   }
   console.log(`job ${jobData.jobId} completed with result: ${JSON.stringify(result)}`)
 })
-console.log('reorder and refactor code, maybe separate ws and queue in two different files to import')
-console.log('make sure to have a good readme or them to understand, comment and document code ')
-console.log('docker per client, style, user AUTH, immudb (CHIEDERE LUNEDI) ')
+console.log(' style, user AUTH, reports ')
+
+const fakeNewReading = async function(userId) {
+  let data = {}
+  await new Promise(resolve => setTimeout(resolve, 3000))
+  // here read and write into immudb
+  console.log('call the meter to have a reading, it will reply/call a webhook to insert its reading into immudb, and then write on websocket')
+  let response = await immudbVaultApi.write({id: uuidv4(), value: Date.now().valueOf().toString().slice(-8,-3), reading_time: Date.now().valueOf(), read_by_user_id: userId, requested_by_user_id: userId})
+  // TODO refactor
+  if(!response) {
+    data['status'] = 'failed'
+    data['message'] = 'reading.failed'
+  } else {
+    data['status'] = 'ok'
+    data['message'] = 'reading.completed'
+    data['transactionId'] = response.transactionId
+    data['documentId'] = response.documentId
+    // insert into readings???? it is needed?
+  }
+  return data
+}
+
+
+

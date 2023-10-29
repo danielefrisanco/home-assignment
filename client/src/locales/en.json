@@ -11,7 +11,8 @@
     "manager": "Readings Manager",
     "reading": "reading",
     "request_new": "Request a new reading",
-    "completed": "Reading completed"
+    "completed": "Reading completed",
+    "failed": "Reading failed"
   }
   
 }

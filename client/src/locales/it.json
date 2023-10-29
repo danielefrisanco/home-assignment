@@ -11,6 +11,7 @@
     "manager": "Gestisci Letture",
     "reading": "lettura",
     "request_new": "Richiedi nuova lettura",
-    "completed": "Lettura completata"
+    "completed": "Lettura completata",
+    "failed": "Lettura fallita"
   }
 }
