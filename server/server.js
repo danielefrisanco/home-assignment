@@ -14,18 +14,17 @@ const finale = require('finale-rest')
 const immudbVaultApi = require('./immudb-vault')
 
 const { v4: uuidv4 } = require('uuid')
-// const OktaJwtVerifier = require('@okta/jwt-verifier')
-
-// const oktaJwtVerifier = new OktaJwtVerifier({
-//   clientId: '0oacxman6qNc03DxC5d7',
-//   issuer: 'https://dev-25906436.okta.com/oauth2/default/oauth2/default'
-// })
 
 let app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
 
+// const OktaJwtVerifier = require('@okta/jwt-verifier')
+// const oktaJwtVerifier = new OktaJwtVerifier({
+//   clientId: process.env.OKTA_CLIENT_ID,
+//   issuer: process.env.OKTA_ISSUER
+// })
 // verify JWT token middleware
 // app.use((req, res, next) => {
 //   // require every request to have an authorization header
@@ -57,7 +56,7 @@ let Reading = database.define('readings', {
   documentId: Sequelize.STRING,
   transactionId: Sequelize.STRING,
   value: Sequelize.INTEGER,
-  reading_time: Sequelize.TIMESTAMP,
+  reading_time: Sequelize.TIME,
   requested_by_user_id: Sequelize.STRING,
   read_by_user_id: Sequelize.STRING
 })
@@ -192,7 +191,6 @@ wss.on('connection', function connection (ws) {
 
 // const immudbClient = require('immudb-node')
 app.post('/request_new_reading', async function (req, res) {
-  console.log('request_new_reading')
   let type = 'new_reading'
   let userId = uuidv4() // req.user.uid
   const job = {jobType: 'reading', jobId: uuidv4(), userId: userId, wsData: {'type': type, 'room': req.body.room, 'params': { type: type }}}

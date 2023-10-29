@@ -7,11 +7,20 @@
   "new": "Nuovo",
   "title": "Titolo",
   "body": "Descrizione",
+  "home": "Home",
+  "login": "Login",
+  "logout": "Logout",
   "reading": {
     "manager": "Gestisci Letture",
     "reading": "lettura",
     "request_new": "Richiedi nuova lettura",
     "completed": "Lettura completata",
-    "failed": "Lettura fallita"
+    "failed": "Lettura fallita",
+    "documentId": "ID documento",
+    "transactionId": "ID Transazione",
+    "value": "Valore",
+    "reading_time": "Letto il",
+    "requested_by_user_id": "Richiedente",
+    "read_by_user_id": "Lettore"
   }
 }

@@ -5,10 +5,10 @@
       <b-navbar-brand to="/">My Vue App</b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
-          <b-nav-item to="/">Home</b-nav-item>
-          <b-nav-item to="/readings-manager">Readings Manager</b-nav-item>
-          <b-nav-item href="#" @click.prevent="login" v-if="!activeUser">Login</b-nav-item>
-          <b-nav-item href="#" @click.prevent="logout" v-else>Logout</b-nav-item>
+          <b-nav-item to="/">{{ $t("home") }}</b-nav-item>
+          <b-nav-item to="/readings-manager">{{ $t("reading.manager") }}</b-nav-item>
+          <b-nav-item href="#" @click.prevent="login" v-if="!activeUser">{{ $t("login") }}</b-nav-item>
+          <b-nav-item href="#" @click.prevent="logout" v-else>{{ $t("logout") }}</b-nav-item>
           <div class="nav__end">
             <LocaleSwitcher />
           </div>
@@ -17,7 +17,7 @@
     </b-navbar>
     <Notifications :ws-room="wsRoom"/>
     <!-- routes will be rendered here -->
-    <router-view :ws-room="wsRoom"/>
+    <router-view :ws-room="wsRoom" :active-user="activeUser"/>
   </div>
 </template>
 
@@ -35,18 +35,20 @@ export default {
   },
   components: { LocaleSwitcher, Notifications },
   async created () {
-    // await this.refreshActiveUser()
+    await this.refreshActiveUser()
   },
   watch: {
     // everytime a route is changed refresh the activeUser
-    // '$route': 'refreshActiveUser'
+    '$route': 'refreshActiveUser'
   },
   methods: {
     async login () {
       this.$auth.signInWithRedirect()
     },
     async refreshActiveUser () {
-      if (this.authState.isAuthenticated) {
+      console.log('OKTA CORS ERROR')
+      let okta = false
+      if (okta && this.authState.isAuthenticated) {
         this.activeUser = await this.$auth.getUser()
       }
     },

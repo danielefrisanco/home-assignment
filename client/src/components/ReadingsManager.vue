@@ -13,16 +13,24 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Title</th>
-              <th>Updated At</th>
+              <th>{{ $t("reading.documentId") }}</th>
+              <th>{{ $t("reading.transactionId") }}</th>
+              <th>{{ $t("reading.value") }}</th>
+              <th>{{ $t("reading.reading_time") }}</th>
+              <th>{{ $t("reading.requested_by_user_id") }}</th>
+              <th>{{ $t("reading.read_by_user_id") }}</th>
               <th>&nbsp;</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="reading in readings" :key="reading.id">
               <td>{{ reading.id }}</td>
-              <td>{{ reading.title }}</td>
-              <td>{{ $d(new Date(reading.updatedAt), 'short') }}</td>
+              <td>{{ reading.documentId }}</td>
+              <td>{{ reading.transactionId }}</td>
+              <td>{{ reading.value }}</td>
+              <td>{{ $d(new Date(reading.reading_time), 'short') }}</td>
+              <td>{{ reading.requested_by_user_id }}</td>
+              <td>{{ reading.read_by_user_id }}</td>
               <td class="text-right">
                 <a href="#" @click.prevent="populateReadingToEdit(reading)">{{ $t("edit") }}</a> -
                 <a href="#" @click.prevent="deleteReading(reading.id)">{{ $t("delete") }}</a>
@@ -34,11 +42,11 @@
       <b-col lg="3">
         <b-card :title="(model.id ? $t('new') + ' ' + $t('reading.reading') + ' ID#' + model.id : $t('new') + ' ' + $t('reading.reading') )">
           <form @submit.prevent="saveReading">
-            <b-form-group :label="$t('title')">
-              <b-form-input type="text" v-model="model.title"></b-form-input>
+            <b-form-group :label="$t('reading.documentId')">
+              <b-form-input type="text" v-model="model.documentId"></b-form-input>
             </b-form-group>
-            <b-form-group :label="$t('body')">
-              <b-form-textarea rows="4" v-model="model.body"></b-form-textarea>
+            <b-form-group :label="$t('reading.value')">
+              <b-form-textarea rows="4" v-model="model.value"></b-form-textarea>
             </b-form-group>
             <div>
               <b-btn type="submit" variant="success">{{ $t("save") }} {{ $t("reading.reading") }}</b-btn>
@@ -54,17 +62,25 @@
 import api from '@/api'
 export default {
   data () {
+    let uid = null
+    if (this.activeUser) {
+      uid = this.activeUser.uid
+    }
     return {
       loading: false,
       connectedWs: false,
       readings: [],
-      model: {},
+      model: {
+        read_by_user_id: uid,
+        requested_by_user_id: uid
+      },
       ws: null,
       room: null
     }
   },
   props: {
-    wsRoom: String
+    wsRoom: String,
+    activeUser: Object
   },
   async created () {
     this.refreshReadings()

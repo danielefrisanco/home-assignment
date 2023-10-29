@@ -7,12 +7,21 @@
   "new": "New",
   "title": "Title",
   "body": "Body",
+  "home": "Home",
+  "login": "Login",
+  "logout": "Logout",
   "reading": {
     "manager": "Readings Manager",
     "reading": "reading",
     "request_new": "Request a new reading",
     "completed": "Reading completed",
-    "failed": "Reading failed"
+    "failed": "Reading failed",
+    "documentId": "Document ID",
+    "transactionId": "Transaction ID",
+    "value": "Value",
+    "reading_time": "Read at",
+    "requested_by_user_id": "Requester",
+    "read_by_user_id": "Reader"
   }
   
 }

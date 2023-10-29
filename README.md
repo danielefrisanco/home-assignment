@@ -84,3 +84,14 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 ## Redis
 ## restyle
 ## Immmudb
+
+
+
+## Proxy
+Not working atm, trying to use it to fix okta cors error
+``` bash
+cd reverse-proxy
+docker build -t reverse-proxy .
+docker run --rm  --net=host  -it -p 80:80 reverse-proxy
+```
+http://localhost:80 
