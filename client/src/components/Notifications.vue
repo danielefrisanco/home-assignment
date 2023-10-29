@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid mt-4">
-    <h2>{{ $t(message) }} {{ info }}</h2>
+    <h2>{{ message }}</h2>
   </div>
 </template>
 
@@ -9,8 +9,7 @@ export default {
   data () {
     return {
       ws: null,
-      message: null,
-      info: null
+      message: null
     }
   },
   props: {
@@ -26,8 +25,11 @@ export default {
     this.ws.onmessage = function (event) {
       let data = JSON.parse(event.data)
       if (data.type === 'new_reading') {
-        self.message = data.message
-        self.info = data.documentId
+        if (data.documentId) {
+          self.message = `${self.$t(`reading.${data.message}`)}: ${data.documentId}`
+        } else {
+          self.message = `${self.$t(`reading.${data.message}`)}`
+        }
         self.cleanMessage()
       } else {
         console.log(`Other: ${data}`)
@@ -43,7 +45,6 @@ export default {
     async cleanMessage () {
       await new Promise(resolve => setTimeout(resolve, 5000))
       this.message = null
-      this.info = null
     }
   }
 }

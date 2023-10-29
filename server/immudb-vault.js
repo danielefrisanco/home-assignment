@@ -15,43 +15,73 @@ async function execute (method, resource, data) {
   }).then(req => {
     return req.data
   }).catch(function (error) {
-    console.log('error.toJSON()');
     console.log(error.toJSON());
     return false
   })
 
 }
 
-const write = async function(data) {
-
-  return execute('put', `/document`, data)
-
-  // curl -X 'PUT'   'https://vault.immudb.io/ics/api/v1/ledger/default/collection/default/document' \
-  // -H 'accept: application/json' \
-  // -H 'X-API-Key: IMMUDB_VAULT_API_KEY' \
-  // -H 'Content-Type: application/json' \
-  // -d '{
-  //   "name": "John Doe",
-  //   "id": 1,
-  //   "timestamp": "2023-05-10T12:00:00Z",
-  //   "email": "johndoe@example.com",
-  //   "age": 30,
-  //   "address": "123 Main Street",
-  //   "city": "New York",
-  //   "country": "USA",
-  //   "phone": "+1-123-456-7890",
-  //   "is_active": true
-  // }'
-
-}
-const read = async function() {
-  // curl -X 'POST'  'https://vault.immudb.io/ics/api/v1/ledger/default/collection/default/documents/search' \
-  // -H 'accept: application/json' \
-  // -H 'X-API-Key: IMMUDB_VAULT_API_KEY_READ_ONLY' \
-  // -H 'Content-Type: application/json' \
-  // -d '{"page":1,"perPage":100}'
-  return execute('get', `/documents/search`, {"page":1,"perPage":100})
+const write = async function(userId, data) {
+  if(await read(userId)) {
+    return replace(userId, data)
+  } else {
+    return execute('put', `/document`, data)
+  }
 }
 
+const writeWithDocumentId = async function(documentId, data) {
+  let new_data = {
+    "document": data,
+    "query": {
+      "expressions": [{
+        "fieldComparisons": [{
+          "field": "documentId",
+          "operator": "EQ",
+          "value": documentId
+        }]
+      }]
+    }
+  }
+  return execute('POST', `/document`, new_data)
+}
+const read = async function(userId) {
+  let data = {
+              "keepOpen": false,
+              "query": {
+                "expressions": [{
+                  "fieldComparisons": [{
+                    "field": "requested_by_user_id",
+                    "operator": "EQ",
+                    "value": userId
+                  }]
+                }]
+              },
+              "page": 1,
+              "perPage": 1
+            }
+  return execute('post', `/documents/search`, data)
+}
 
-module.exports = { write, read };
+
+const replace = async function(userId, data) {
+  let new_data = {
+    "document": data,
+    "query": {
+      "expressions": [{
+        "fieldComparisons": [{
+          "field": "requested_by_user_id",
+          "operator": "EQ",
+          "value": userId
+        }]
+      }]
+    }
+  }
+  return execute('POST', `/document`, new_data)
+}
+const versions = async function(documentId) {
+  return execute('POST', `/document/${documentId}/audit`, { "desc": true, "page": 1, "perPage": 100 }) 
+}
+module.exports = { write, read, versions, writeWithDocumentId };
+
+
+

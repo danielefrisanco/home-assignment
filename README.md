@@ -13,24 +13,30 @@ The user and the "meter" in reality need to be connected somehow, here I assume 
 The User can request a reading or insert its own manual reading.
 I will try to put all the basis for a fully functioning app.
 A Vue.js front end backed by node.js
+I have prioritized the functionalities of the proof of concept and the integration with immudb over the rest
 The front end is multi language and communicates via api and via websocket to the back end and requires a login.
 There should also be some sort of report/graph
-The back end will store some data on a traditional database and some on immudb.
-Some of the tasks require time and for this there will be jobs running and the websocket will be used to communicate thery result.
+The back end will store ~~some data on a traditional database and some~~ on immudb.
+Some of the tasks require time or to be asyncronous and for this there will be jobs running and the websocket will be used to communicate thery result.
 Everything will be dockerized.
-The functionalities are minimal but new features can be built with the same stack.
-Tests are just minimal because of lack of time and the outcome of the project was not sure. Also there is no error handling.
+The functionalities are minimal but new features can be built with the same stack just expanding what is already in place.
+Tests are just minimal because of lack of time and the outcome desired from the project was not sure. Also there is no to little error handling.
+
+In Immudb I will have a collection called readings and have a document for each user
+I wasn't too sure how to go with this, another possibility was to have a colelction for each user and a document for each reading
 
 TODO:
-  - Substitute sqllite with a docker image(maybe postgres?)
-  - fix authentication with proxy or find another way
-  - integrate immudb vault
-  - improve gui and style template bootstrap
-  - add report
-  - add manual reading
+  - ~~Substitute~~ remove sqllite ~~with a docker image(maybe postgres?) ~~
+  - add reports
+  - add pagination
 
 
 ## Build Setup
+
+Create collection readings
+``` bash
+node ./immudb-vault-setup
+```
 
 
 ``` bash
@@ -47,17 +53,6 @@ npm install
 # serve with hot reload at localhost:8080
 npm run dev
 
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-
-# run unit tests
-npm run unit
-
-# run all tests
-npm test
 ```
 
 ``` bash
@@ -69,29 +64,18 @@ node ./server
 ```
 
 
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
-
 
 ## Websocket
-## Vue
+## Vuejs
 ## I18n
-## Node
+## Nodejs
 ## eslinter
-## Okta
+## ~~OKTA~~
+## Auth0
 ## SqlLite
 ## docker
 ## graph and report
 ## Redis
 ## restyle
-## Immmudb
+## Immmudb Vault
 
-
-
-## Proxy
-Not working atm, trying to use it to fix okta cors error
-``` bash
-cd reverse-proxy
-docker build -t reverse-proxy .
-docker run --rm  --net=host  -it -p 80:80 reverse-proxy
-```
-http://localhost:80 

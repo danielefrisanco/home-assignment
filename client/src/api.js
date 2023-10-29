@@ -7,9 +7,8 @@ const client = axios.create({
 })
 
 export default {
-  async execute (method, resource, data) {
+  async execute (accessToken, method, resource, data) {
     // inject the accessToken for each request
-    let accessToken = ''// await Vue.prototype.$auth.getAccessToken()
     return client({
       method,
       url: resource,
@@ -21,22 +20,28 @@ export default {
       return req.data
     })
   },
-  getReadings () {
-    return this.execute('get', '/readings')
+  // getReadings (accessToken) {
+  //   return this.execute(accessToken, 'get', '/readings')
+  // },
+  // getReading (accessToken, id) {
+  //   return this.execute(accessToken, 'get', `/readings/${id}`)
+  // },
+  // createReading (accessToken, data) {
+  //   return this.execute(accessToken, 'post', '/readings', data)
+  // },
+  // updateReading (accessToken, id, data) {
+  //   return this.execute(accessToken, 'put', `/readings/${id}`, data)
+  // },
+  // deleteReading (accessToken, id) {
+  //   return this.execute(accessToken, 'delete', `/readings/${id}`)
+  // },
+  getRequestNewReading (accessToken, room, userId) {
+    return this.execute(accessToken, 'post', `/request_new_reading/${userId}`, {room: room})
   },
-  getReading (id) {
-    return this.execute('get', `/readings/${id}`)
+  getReadings (accessToken, userId) {
+    return this.execute(accessToken, 'get', `/readings/${userId}`)
   },
-  createReading (data) {
-    return this.execute('post', '/readings', data)
-  },
-  updateReading (id, data) {
-    return this.execute('put', `/readings/${id}`, data)
-  },
-  deleteReading (id) {
-    return this.execute('delete', `/readings/${id}`)
-  },
-  getRequestNewReading (room) {
-    return this.execute('post', '/request_new_reading', {room: room})
+  createNewReading (accessToken, room, reading, userId) {
+    return this.execute(accessToken, 'post', `/new_reading/${userId}`, {room: room, reading: reading})
   }
 }

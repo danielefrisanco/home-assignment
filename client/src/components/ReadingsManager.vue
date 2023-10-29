@@ -9,44 +9,27 @@
     </b-row>
     <b-row>
       <b-col>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>{{ $t("reading.documentId") }}</th>
-              <th>{{ $t("reading.transactionId") }}</th>
-              <th>{{ $t("reading.value") }}</th>
-              <th>{{ $t("reading.reading_time") }}</th>
-              <th>{{ $t("reading.requested_by_user_id") }}</th>
-              <th>{{ $t("reading.read_by_user_id") }}</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="reading in readings" :key="reading.id">
-              <td>{{ reading.id }}</td>
-              <td>{{ reading.documentId }}</td>
-              <td>{{ reading.transactionId }}</td>
-              <td>{{ reading.value }}</td>
-              <td>{{ $d(new Date(reading.reading_time), 'short') }}</td>
-              <td>{{ reading.requested_by_user_id }}</td>
-              <td>{{ reading.read_by_user_id }}</td>
-              <td class="text-right">
-                <a href="#" @click.prevent="populateReadingToEdit(reading)">{{ $t("edit") }}</a> -
-                <a href="#" @click.prevent="deleteReading(reading.id)">{{ $t("delete") }}</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <b-table striped hover :items="readings" :fields="fields">
+          <template v-slot:cell(actions)="{ item }">
+            <span>
+              <!-- <b-btn variant="primary" @click.prevent="populateReadingToEdit(item)">{{ $t("edit") }}</b-btn>
+              <b-btn variant="danger" @click.prevent="deleteReading(item.documentId)">{{ $t("delete") }}</b-btn> -->
+            </span>
+          </template>
+        </b-table>
       </b-col>
       <b-col lg="3">
-        <b-card :title="(model.id ? $t('new') + ' ' + $t('reading.reading') + ' ID#' + model.id : $t('new') + ' ' + $t('reading.reading') )">
+        <b-card :title="(model.documentId ? $t('edit') + ' ' + $t('reading.reading') + ' ID#' + model.documentId : $t('new') + ' ' + $t('reading.reading') )">
           <form @submit.prevent="saveReading">
             <b-form-group :label="$t('reading.documentId')">
-              <b-form-input type="text" v-model="model.documentId"></b-form-input>
+              <b-form-input type="text" v-model="model.documentId" disabled="disabled"></b-form-input>
+            </b-form-group>
+
+            <b-form-group v-if="model.revision" :label="$t('reading.revision')">
+              {{ model.revision }}
             </b-form-group>
             <b-form-group :label="$t('reading.value')">
-              <b-form-textarea rows="4" v-model="model.value"></b-form-textarea>
+              <b-form-input type="text" v-model="model.value"></b-form-input>
             </b-form-group>
             <div>
               <b-btn type="submit" variant="success">{{ $t("save") }} {{ $t("reading.reading") }}</b-btn>
@@ -64,12 +47,23 @@ export default {
   data () {
     let uid = null
     if (this.activeUser) {
-      uid = this.activeUser.uid
+      uid = this.activeUser.sub
     }
     return {
       loading: false,
       connectedWs: false,
       readings: [],
+      fields: [
+        'ID',
+        {key: 'revision', label: this.$t('reading.revision')},
+        {key: 'documentId', label: this.$t('reading.documentId')},
+        {key: 'transactionId', label: this.$t('reading.transactionId')},
+        {key: 'value', label: this.$t('reading.value')},
+        {key: 'reading_time', label: this.$t('reading.reading_time')},
+        {key: 'requested_by_user_id', label: this.$t('reading.requested_by_user_id')},
+        {key: 'read_by_user_id', label: this.$t('reading.read_by_user_id')},
+        {key: 'actions', label: ''}
+      ],
       model: {
         read_by_user_id: uid,
         requested_by_user_id: uid
@@ -86,7 +80,7 @@ export default {
     this.refreshReadings()
   },
   mounted: function () {
-    console.log(this.wsRoom)
+    // console.log(this.wsRoom)
     this.ws = new WebSocket('ws://localhost:7071')
     var self = this
     this.ws.onopen = function (event) {
@@ -116,34 +110,51 @@ export default {
     // },
     async refreshReadings () {
       this.loading = true
-      this.readings = await api.getReadings()
+      const accessToken = await this.$auth0.getAccessTokenSilently()
+      this.readings = await api.getReadings(accessToken, this.activeUser.sub)
+      // this.readings = await api.getReadings(accessToken)
+      if (this.readings.length > 0) {
+        // find another solution, like saving the docid in db or something
+        this.model = Object.assign({}, {documentId: this.readings[0].documentId})
+      }
+
       this.loading = false
     },
-    async populateReadingToEdit (reading) {
+    populateReadingToEdit (reading) {
       this.model = Object.assign({}, reading)
     },
     async requestNewReading () {
-      await api.getRequestNewReading(this.wsRoom)
+      const accessToken = await this.$auth0.getAccessTokenSilently()
+      await api.getRequestNewReading(accessToken, this.wsRoom, this.activeUser.sub)
     },
     async saveReading () {
-      if (this.model.id) {
-        await api.updateReading(this.model.id, this.model)
-      } else {
-        await api.createReading(this.model)
-      }
+      // TODO add the missing fields to the form
+      const accessToken = await this.$auth0.getAccessTokenSilently()
+      await api.createNewReading(accessToken, this.wsRoom, this.model, this.activeUser.sub)
       this.model = {} // reset form
       await this.refreshReadings()
-    },
-    async deleteReading (id) {
-      if (confirm('Are you sure you want to delete this reading?')) {
-        // if we are editing a reading we deleted, remove it from the form
-        if (this.model.id === id) {
-          this.model = {}
-        }
-        await api.deleteReading(id)
-        await this.refreshReadings()
-      }
     }
+    // async saveReadingDb () {
+    //   const accessToken = await this.$auth0.getAccessTokenSilently()
+    //   if (this.model.documentId) {
+    //     await api.updateReading(accessToken, this.model.documentId, this.model)
+    //   } else {
+    //     await api.createReading(accessToken, this.model)
+    //   }
+    //   this.model = {} // reset form
+    //   await this.refreshReadings()
+    // },
+    // async deleteReading (documentId) {
+    //   if (confirm('Are you sure you want to delete this reading?')) {
+    //     // if we are editing a reading we deleted, remove it from the form
+    //     if (this.model.documentId === documentId) {
+    //       this.model = {}
+    //     }
+    //     const accessToken = await this.$auth0.getAccessTokenSilently()
+    //     await api.deleteReading(accessToken, documentId)
+    //     await this.refreshReadings()
+    //   }
+    // }
   }
 }
 </script>

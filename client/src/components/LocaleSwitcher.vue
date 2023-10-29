@@ -2,7 +2,7 @@
 
   <div class="locale-switcher">
 
-    <select v-model="$i18n.locale">
+    <select v-model="$i18n.locale" class="custom-select">
 
       <option :value="locale.code" v-for="locale in locales" :key="locale.code">
 

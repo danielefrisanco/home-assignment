@@ -6,6 +6,7 @@
 **/yarn-error.log*
 **/test/unit/coverage
 **.env
+client/build/config/dev.env.js
 
 # Editor directories and files
 .idea

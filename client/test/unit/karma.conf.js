@@ -5,8 +5,8 @@
 
 var webpackConfig = require('../../build/webpack.test.conf')
 
-const puppeteer = require('puppeteer');
-process.env.CHROME_BIN = puppeteer.executablePath();
+const puppeteer = require('puppeteer')
+process.env.CHROME_BIN = puppeteer.executablePath()
 module.exports = function (config) {
   config.set({
     // to run in additional browsers:
