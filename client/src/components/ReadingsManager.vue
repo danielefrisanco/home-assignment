@@ -23,7 +23,7 @@
           </template>
         </b-table>
       </b-col>
-      <b-col lg="3">
+      <b-col lg="3" v-if="model.documentId">
         <b-card :title="(model.documentId ? $t('edit') + ' ' + $t('reading.reading') + ' ID#' + model.documentId : $t('new') + ' ' + $t('reading.reading') )">
           <form @submit.prevent="saveReading">
             <b-form-group :label="$t('reading.documentId')">
