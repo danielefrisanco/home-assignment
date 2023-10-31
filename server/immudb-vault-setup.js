@@ -16,18 +16,15 @@ async function execute (method, resource, data) {
     return req.data
   }).catch(function (error) {
     console.log('error.toJSON()');
-    console.log(error);
+    // console.log(error);
     return false
   })
 
 }
 
 const immudbCreateCollection = async function(collection, fields) {
-  console.log(fields)
   let exists_already = await execute('get', `/readings`)
-  console.log('exists_already?')
-  console.log(exists_already)
-  if(!exists_already) {
+  if(exists_already == false) {
     return await execute('put', `/readings`, fields)
   }
 
@@ -60,7 +57,7 @@ immudbCreateCollection('readings', {idFieldName: "documentId", fields: fields, i
 
 
 
-
+// Examples
 // documentId: Sequelize.STRING,
 //   transactionId: Sequelize.STRING,
 //   value: Sequelize.INTEGER,
@@ -75,7 +72,7 @@ immudbCreateCollection('readings', {idFieldName: "documentId", fields: fields, i
 //   -H 'Content-Type: application/json' 
 
 
-// // delete collection
+// // // // delete collection
 // curl -X 'DELETE'   'https://vault.immudb.io/ics/api/v1/ledger/default/collection/readings' \
 //   -H 'accept: application/json' \
 //   -H 'X-API-Key: default.VlxvkhjZEpwY-O0nHKLrHw.RoE55gWwrQXxDHTSTNjDEKPOZGnxou-eKgXHuBdtO9uTACbo' \
@@ -117,16 +114,16 @@ immudbCreateCollection('readings', {idFieldName: "documentId", fields: fields, i
  
 
 // insert
-// curl -X 'PUT'   'https://vault.immudb.io/ics/api/v1/ledger/default/collection/readings/document' \
-//   -H 'accept: application/json' \
-//   -H 'X-API-Key: default.VlxvkhjZEpwY-O0nHKLrHw.RoE55gWwrQXxDHTSTNjDEKPOZGnxou-eKgXHuBdtO9uTACbo' \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "requested_by_user_id": "requested_by_user_id",
-//     "reading_time": "2023-05-10T12:00:00Z",
-//     "read_by_user_id": "read_by_user_idread_by_user_idread_by_user_id",
-//     "value": "valuessssssst"
-//   }'
+curl -X 'PUT'   'https://vault.immudb.io/ics/api/v1/ledger/default/collection/readings/document' \
+  -H 'accept: application/json' \
+  -H 'X-API-Key: default.VlxvkhjZEpwY-O0nHKLrHw.RoE55gWwrQXxDHTSTNjDEKPOZGnxou-eKgXHuBdtO9uTACbo' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "requested_by_user_id": "requested_by_user_id",
+    "reading_time": "2023-05-10T12:00:00Z",
+    "read_by_user_id": "read_by_user_idread_by_user_idread_by_user_id",
+    "value": "valuessssssst"
+  }'
 
 // curl -X 'PUT'   'https://vault.immudb.io/ics/api/v1/ledger/default/collection/readings/document' \
 //   -H 'accept: application/json' \
@@ -211,3 +208,11 @@ immudbCreateCollection('readings', {idFieldName: "documentId", fields: fields, i
 //     "page": 1,
 //     "perPage": 10
 //     }'
+
+
+
+
+
+
+
+

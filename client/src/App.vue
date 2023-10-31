@@ -80,6 +80,9 @@ export default {
 .logo {
   max-height: 30px;
 }
+.navbar-collapse {
+  justify-content: flex-end; 
+}
 /* .nav a {
   margin-right: 1.5rem;
   font-weight: bold;

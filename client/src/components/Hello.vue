@@ -3,6 +3,7 @@
     <div>
       <h1 class="display-3">Daniele Frisanco</h1>
       <p class="lead">Welcome in the Reading manager</p>
+      <span><a href="https://github.com/danielefrisanco/home-assignment" target="_blank">Home assignment on GitHub</a></span>
     </div>
   </div>
 </template>

@@ -4,12 +4,17 @@
     <b-alert :show="loading" variant="info">{{ $t("loading") }}...</b-alert>
     <b-row>
       <b-col>
-        <b-btn :show="!connectedWs" variant="primary" @click.prevent="requestNewReading()">{{ $t("reading.request_new") }}</b-btn>
+        <b-btn :show="connectedWs" variant="primary" @click.prevent="requestNewReading()">{{ $t("reading.request_new") }}</b-btn>
       </b-col>
     </b-row>
-    <b-row>
+    <b-row >
       <b-col>
         <b-table striped hover :items="readings" :fields="fields">
+          <template v-slot:cell(reading_time)="{ item }">
+            <span>
+              {{$d(new Date(parseInt(item.reading_time)), 'complete')}}
+            </span>
+          </template>
           <template v-slot:cell(actions)="{ item }">
             <span>
               <!-- <b-btn variant="primary" @click.prevent="populateReadingToEdit(item)">{{ $t("edit") }}</b-btn>

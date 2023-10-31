@@ -5,6 +5,8 @@ const bodyParser = require('body-parser')
 const Sequelize = require('sequelize')
 const finale = require('finale-rest')
 const immudbVaultApi = require('./immudb-vault')
+const webSocketHandler = require('./websocket-handler')
+const WebSocket = require('ws')
 
 const { v4: uuidv4 } = require('uuid')
 
@@ -26,12 +28,14 @@ app.use(
   checkJwt
 );
 
+// Not needed now
 // For ease of this tutorial, we are going to use SQLite to limit dependencies
 let database = new Sequelize({
   dialect: 'sqlite',
   storage: './test.sqlite'
 })
 
+// Not needed now
 // Define our Reading model
 // id, createdAt, and updatedAt are added by sequelize automatically
 let Reading = database.define('readings', {
@@ -43,12 +47,14 @@ let Reading = database.define('readings', {
   read_by_user_id: Sequelize.STRING
 })
 
+// Not needed now
 // Initialize finale
 finale.initialize({
   app: app,
   sequelize: database
 })
 
+// Not needed now
 // Create the dynamic REST resource for our Reading model
 // let readindResource = finale.resource({
 //   model: Reading,
@@ -59,115 +65,12 @@ finale.initialize({
 database
   .sync({ force: true })
   .then(() => {
-    console.log('8082 usare env')
-    app.listen(8082, () => {
-      console.log('listening to port localhost:8082')
+    app.listen(process.env.API_PORT, () => {
+      console.log(`listening to port localhost:${process.env.API_PORT}`)
     })
   })
-  
-// WEBSOCKET
-// TODO move to another file
-const WebSocket = require('ws')
-const wss = new WebSocket.Server({ port: 7071 })
-const maxClients = 3
-let rooms = {}
-wss.on('connection', function connection (ws) {
-  ws.on('message', function message (data) {
-    const obj = JSON.parse(data)
-    const type = obj.type
-    const params = obj.params
 
-    switch (type) {
-      case 'create_or_join':
-        create_or_join(params)
-        break
-      case 'join':
-        join(params) // not used
-        break
-      case 'leave':
-        leave(params) // not used
-        break
-      case 'new_reading':
-        newReading(obj.room, params)
-        break
-      default:
-        console.warn(`Type: ${type} unknown`)
-        break
-    }
-  })
-  function newReading (room, params) {
-    // with the room shared it is possible to change page and still receive the updates
-    if(rooms[room]) {
-      rooms[room].forEach(cl => cl.send(JSON.stringify(params)))
-    }
-  }
-  function create_or_join (params) {
-    const room = params.room
-    if (Object.keys(rooms).includes(room)) {
-      console.warn(`Room ${room} already exists!`)
-      // join if already exists
-      rooms[room].push(ws)
-      ws['room'] = room
-      generalInformation(ws, 'joined')
-      return
-    }
-    rooms[room] = [ws]
-    ws['room'] = room
-
-    generalInformation(ws, 'created')
-  }
-  function join (params) {
-    // not used now
-    const room = params.code
-    if (!Object.keys(rooms).includes(room)) {
-      console.warn(`Room ${room} does not exist!`)
-      return
-    }
-
-    if (rooms[room].length >= maxClients) {
-      console.warn(`Room ${room} is full!`)
-      return
-    }
-
-    rooms[room].push(ws)
-    ws['room'] = room
-
-    generalInformation(ws)
-  }
-  function leave (params) {
-    // not used now
-    const room = ws.room
-    rooms[room] = rooms[room].filter(so => so !== ws)
-    ws['room'] = undefined
-
-    if (rooms[room].length === 0) { close(room) }
-  }
-  function close (room) {
-    // not used now
-    rooms = rooms.filter(key => key !== room)
-  }
-  function generalInformation (ws, type = 'info') {
-    let obj
-    if (ws['room'] !== undefined) {
-      obj = {
-        'type': type,
-        'params': {
-          'room': ws['room'],
-          'no-clients': rooms[ws['room']].length
-        }
-      }
-    } else {
-      obj = {
-        'type': type,
-        'params': {
-          'room': 'no room'
-        }
-      }
-    }
-
-    ws.send(JSON.stringify(obj))
-  }
-})
+webSocketHandler.startWS()
 
 // const immudbClient = require('immudb-node')
 app.post('/request_new_reading/:user_id', async function (req, res) {
@@ -175,7 +78,7 @@ app.post('/request_new_reading/:user_id', async function (req, res) {
   let type = 'new_reading'
   let userId = req.params.user_id
   const job = {jobType: 'request_new_reading', jobId: uuidv4(), userId: userId, wsData: {'type': type, 'room': req.body.room, 'params': { type: type }}}
-  var ws = new WebSocket('ws://localhost:7071')
+  var ws = new WebSocket(`ws://localhost:${process.env.WS_PORT}`)
   ws.onopen = function (event) {
     // send a messge to say that I am working on the request
     // TODO: refactor
@@ -191,15 +94,18 @@ app.post('/request_new_reading/:user_id', async function (req, res) {
 
   res.json({jobId: job.jobId})
 })
+
+
 // const immudbClient = require('immudb-node')
 app.post('/new_reading/:user_id', async function (req, res) {
   // the user requested a reading
   let type = 'new_reading'
+  // can I get the user id from the token?
   let userId = req.params.user_id
   let reading = req.body.reading
   const job = {jobType: type, jobId: uuidv4(), userId: userId, wsData: {'type': type, 'room': req.body.room, 'params': { type: type, value: reading.value, documentId: reading.documentId}}}
   
-  var ws = new WebSocket('ws://localhost:7071')
+  var ws = new WebSocket(`ws://localhost:${process.env.WS_PORT}`)
   ws.onopen = function (event) {
     // send a messge to say that I am working on the request
     // TODO: refactor
@@ -218,22 +124,25 @@ app.post('/new_reading/:user_id', async function (req, res) {
 
 app.get('/readings/:user_id', async function (req, res) {
   // the user requested a reading
+  // can I get the user id from the token?
   let userId = req.params.user_id
   let response = await immudbVaultApi.read(userId)
   // TODO save documentId in db, if not found in db than call read
-  let documentId = response.revisions[0]['document'].documentId
-  let result = await immudbVaultApi.versions(documentId)
   let rows = []
-  for(const revision of result.revisions) {
-    rows.push({
-      transactionId: revision.transactionId,
-      documentId: revision.document.documentId,
-      read_by_user_id: revision.document.read_by_user_id,
-      reading_time: revision.document.reading_time,
-      requested_by_user_id: revision.document.requested_by_user_id,
-      value: revision.document.value,
-      revision: revision.revision
-    })
+  if (response.revisions.length > 0 ) {
+    let documentId = response.revisions[0]['document'].documentId
+    let result = await immudbVaultApi.versions(documentId)
+    for(const revision of result.revisions) {
+      rows.push({
+        transactionId: revision.transactionId,
+        documentId: revision.document.documentId,
+        read_by_user_id: revision.document.read_by_user_id,
+        reading_time: revision.document.reading_time,
+        requested_by_user_id: revision.document.requested_by_user_id,
+        value: revision.document.value,
+        revision: revision.revision
+      })
+    }
   }
   res.json(rows)
 })
@@ -243,17 +152,16 @@ app.get('/readings/:user_id', async function (req, res) {
 
 // JOB
 const Queue = require('bull')
-const { revokeToken } = require('@okta/okta-auth-js')
 
 const redisHost = process.env.REDIS_HOST || '127.0.0.1'
 const redisPort = process.env.REDIS_PORT || 6379
-const queueName = 'reading_jobs'
+const queueName = process.env.REDIS_QUEUE || 'reading_jobs'
 
 // A queue for the jobs scheduled based on a reading without any external requests
 const readingJobsQueue = new Queue(queueName, { redis: { port: redisPort, host: redisHost } })
 readingJobsQueue.process(async function (job, done) {
   const jobData = job.data
-  console.log(`processing job ${jobData.jobId} ${jobData.type}`)
+  console.log(`processing job ${jobData.jobId} ${jobData.jobType}`)
   if (jobData.jobType == 'request_new_reading') {
     // simulate a reading from the meter
     let fakeData = await fakeNewReading(jobData.userId)
@@ -265,16 +173,16 @@ readingJobsQueue.process(async function (job, done) {
     let new_reading = {value: jobData.wsData.params.value, reading_time: Date.now().valueOf().toString(), read_by_user_id: jobData.userId, requested_by_user_id: jobData.userId}
     let response = await immudbVaultApi.writeWithDocumentId(jobData.wsData.params.documentId, new_reading)
     // TODO refactor response handling
-  if(!response) {
-    jobData.wsData.params['status'] = 'failed'
-    jobData.wsData.params['message'] = 'failed'
-  } else {
-    jobData.wsData.params['status'] = 'ok'
-    jobData.wsData.params['message'] = 'completed'
-    jobData.wsData.params['transactionId'] = response.transactionId
-    jobData.wsData.params['documentId'] = response.documentId
-    // insert into sql readings???? it is needed?
-  } 
+    if(!response) {
+      jobData.wsData.params['status'] = 'failed'
+      jobData.wsData.params['message'] = 'failed'
+    } else {
+      jobData.wsData.params['status'] = 'ok'
+      jobData.wsData.params['message'] = 'completed'
+      jobData.wsData.params['transactionId'] = response.transactionId
+      jobData.wsData.params['documentId'] = response.documentId
+      // insert into sql readings???? it is needed?
+    }
   }
   done(null, jobData)
 })
@@ -282,13 +190,12 @@ readingJobsQueue.process(async function (job, done) {
 readingJobsQueue.on('completed', function (job, result) {
   // job done, now we send a message ith the result through the websocket
   const jobData = job.data
-  var ws = new WebSocket('ws://localhost:7071')
+  var ws = new WebSocket(`ws://localhost:${process.env.WS_PORT}`)
   ws.onopen = function (event) {
     ws.send(JSON.stringify(jobData.wsData))
   }
   console.log(`job ${jobData.jobId} completed with result: ${JSON.stringify(result)}`)
 })
-console.log(' style, user AUTH, reports ')
 
 const fakeNewReading = async function(userId) {
   let data = {}

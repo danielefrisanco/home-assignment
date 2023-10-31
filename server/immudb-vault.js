@@ -22,7 +22,8 @@ async function execute (method, resource, data) {
 }
 
 const write = async function(userId, data) {
-  if(await read(userId)) {
+  let res = await read(userId)
+  if(res.revisions.length > 0) {
     return replace(userId, data)
   } else {
     return execute('put', `/document`, data)

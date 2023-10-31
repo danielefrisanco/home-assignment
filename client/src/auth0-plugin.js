@@ -50,8 +50,6 @@ export const useAuth0 = ({
     },
 
     async created () {
-      console.log('pluginOptions')
-      console.log(pluginOptions)
       this.auth0Client = await createAuth0Client({
         ...pluginOptions,
         domain: pluginOptions.domain,
